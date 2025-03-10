@@ -1,0 +1,6 @@
+zscore(Bayut_df['Area m2'])
+#Calculate the z-score for each data point in the 'Price' column
+Bayut_df['Area_z_score'] = zscore(Bayut_df['Area m2'])
+
+#Filter the DataFrame to remove outliers
+Bayut_df[(Bayut_df['Area_z_score'] > 3) | (Bayut_df['Area_z_score']< -3)].sort_values(by='Area m2')
