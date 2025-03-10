@@ -37,18 +37,8 @@ def get_prediction(type_encoding, price, area_m2, region):
 # Streamlit UI
 st.set_page_config(page_title="Real Estate Cluster", layout="centered")
 
-# Apply custom background color
-page_bg = """
-<style>
-    .stApp {
-        background-color: #D2B48C;
-    }
-</style>
-"""
-st.markdown(page_bg, unsafe_allow_html=True)
-
 st.title("🏡 Real Estate Price Cluster")
-st.write("Fill in the details below to get a price Cluster.")
+st.write("Fill in the details below to get a price prediction.")
 
 # User inputs
 region = st.selectbox("🌍 Select Region", ["Riyadh", "Eastern", "Western", "Southern"])
@@ -60,7 +50,7 @@ with col2:
 area_m2 = st.slider("📏 Select Area (m²)", min_value=10, max_value=1000, step=10)
 
 # Prediction Button
-if st.button("🔮 Predict Price Cluster"):
+if st.button("🔮 Predict Price"):
     with st.spinner("Fetching prediction..."):
         result = get_prediction(type_encoding, price, area_m2, region)
     
@@ -74,4 +64,3 @@ if st.button("🔮 Predict Price Cluster"):
             st.write(f"🔢 **Predicted Price Category:** {price_category}")
         else:
             st.json(result)
-            
