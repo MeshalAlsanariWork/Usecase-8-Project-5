@@ -1,57 +1,7 @@
 import streamlit as st
 import requests
 
-# Function to call the API
-def get_prediction(type_encoding, price, area):
-    url = 'https://bayut.onrender.com/predict/riyadh'
-    data = {
-        "Type_encoding": type_encoding,
-        "Price": price,
-        "Area_m2": area,
-    }
-    response = requests.post(url, json=data)
-    
-    # If the response is successful, return the JSON response
-    if response.status_code == 200:
-        return response.json()
-    else:
-        return {"error": "Failed to get prediction"}
-
-# Streamlit UI
-st.set_page_config(page_title="Riyadh Region Property Prediction", page_icon="🏠", layout="centered")
-
-# Add some styling to the app
-st.markdown("""
-    <style>
-    .title {
-        font-size: 36px;
-        color: #4CAF50;
-        font-weight: bold;
-        text-align: center;
-        margin-bottom: 30px;
-    }
-    .stButton>button {
-        background-color: #4CAF50;
-        color: white;
-        font-size: 16px;
-        padding: 10px 20px;
-        border-radius: 5px;
-        border: none;
-        cursor: pointer;
-    }
-    .stButton>button:hover {
-        background-color: #45a049;
-    }
-    .stNumberInput>div>div>input {
-        background-color: #f0f8ff;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# Title with custom styling
-st.markdown('<h1 class="title">Riyadh Region</h1>', unsafe_allow_html=True)
-
-# Mapping for property types
+# Property type mapping
 property_types = {
     0: "Apartment",
     7: "Villa",
@@ -63,22 +13,65 @@ property_types = {
     4: "Residential Building"
 }
 
-# Inputs for the user
-type_encoding = st.selectbox(
-    "Select Property Type",
-    list(property_types.keys()), 
-    format_func=lambda x: property_types[x],
-    key="type"
-)
-price = st.number_input("Enter Price", min_value=0, step=100, key="price")
-area = st.number_input("Enter Area in m²", min_value=0, step=10, key="area")
+# Price category mapping
+price_categories = {
+    "Riyadh": {0: "Avg Price", 1: "Low Price", 2: "High Price"},
+    "Eastern": {0: "Avg Price", 1: "Low Price", 2: "High Price"},
+    "Western": {0: "Avg Price", 1: "High Price", 2: "Low Price"},
+    "Southern": {0: "Low Price", 1: "Avg Price", 2: "High Price"}
+}
 
-# Button to get prediction
-if st.button("Get Prediction"):
-    prediction = get_prediction(type_encoding, price, area)
-    
-    # Display the result
-    if "error" not in prediction:
-        st.markdown(f"<h3 style='text-align: center;'>Predicted Price: {prediction.get('Price_Prediction')} SAR</h3>", unsafe_allow_html=True)
+def get_prediction(type_encoding, price, area_m2, region):
+    url = f'https://bayut.onrender.com/predict/{region.lower()}'
+    data = {
+        "Type_encoding": type_encoding,
+        "Price": price,
+        "Area_m2": area_m2,
+    }
+    response = requests.post(url, json=data)
+    if response.status_code == 200:
+        return response.json()
     else:
-        st.markdown(f"<h3 style='text-align: center; color: red;'>{prediction['error']}</h3>", unsafe_allow_html=True)
+        return {"error": response.status_code, "message": response.text}
+
+# Streamlit UI
+st.set_page_config(page_title="Real Estate Cluster", layout="centered")
+
+# Apply custom background color
+page_bg = """
+<style>
+    .stApp {
+        background-color: #D2B48C;
+    }
+</style>
+"""
+st.markdown(page_bg, unsafe_allow_html=True)
+
+st.title("🏡 Real Estate Price Cluster")
+st.write("Fill in the details below to get a price Cluster.")
+
+# User inputs
+region = st.selectbox("🌍 Select Region", ["Riyadh", "Eastern", "Western", "Southern"])
+col1, col2 = st.columns(2)
+with col1:
+    type_encoding = st.selectbox("🏠 Select Property Type", options=list(property_types.keys()), format_func=lambda x: property_types[x])
+with col2:
+    price = st.number_input("💰 Enter Price", min_value=0.0, step=1000.0)
+area_m2 = st.slider("📏 Select Area (m²)", min_value=10, max_value=1000, step=10)
+
+# Prediction Button
+if st.button("🔮 Predict Price Cluster"):
+    with st.spinner("Fetching prediction..."):
+        result = get_prediction(type_encoding, price, area_m2, region)
+    
+    if "error" in result:
+        st.error(f"❌ Error {result['error']}: {result['message']}")
+    else:
+        st.success("✅ Prediction Successful!")
+        if "prediction" in result and isinstance(result["prediction"], list):
+            prediction_value = result["prediction"][0]  # Extract the first value from the list
+            price_category = price_categories.get(region, {}).get(prediction_value, "Unknown")
+            st.write(f"🔢 **Predicted Price Category:** {price_category}")
+        else:
+            st.json(result)
+            
