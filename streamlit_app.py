@@ -38,7 +38,7 @@ def get_prediction(type_encoding, price, area_m2, region):
 st.set_page_config(page_title="Real Estate Cluster", layout="centered")
 
 st.title("🏡 Real Estate Price Cluster")
-st.write("Fill in the details below to get a price prediction.")
+st.write("Fill in the details below to get a price cluster.")
 
 # User inputs
 region = st.selectbox("🌍 Select Region", ["Riyadh", "Eastern", "Western", "Southern"])
@@ -50,7 +50,7 @@ with col2:
 area_m2 = st.slider("📏 Select Area (m²)", min_value=10, max_value=1000, step=10)
 
 # Prediction Button
-if st.button("🔮 Predict Price"):
+if st.button("🔮 Predict Cluster"):
     with st.spinner("Fetching prediction..."):
         result = get_prediction(type_encoding, price, area_m2, region)
     
